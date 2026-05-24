@@ -1,28 +1,16 @@
-// Custom server for cPanel Node.js Selector (LWS hosting)
-// Entry point: server.js  —  Start command: node server.js
-const { createServer } = require('http');
-const { parse } = require('url');
-const next = require('next');
+// PIETRI — LWS cPanel Passenger entry point
+// Delegates to Next.js standalone server (which loads .env.production automatically)
+'use strict';
 
-const dev = process.env.NODE_ENV !== 'production';
-const hostname = process.env.HOST || 'localhost';
-const port = parseInt(process.env.PORT || '3000', 10);
+const path = require('path');
 
-const app = next({ dev, hostname, port });
-const handle = app.getRequestHandler();
+// Force low-RAM settings for CloudLinux LVE
+process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || '1';
+process.env.NODE_ENV = 'production';
 
-app.prepare().then(() => {
-  createServer(async (req, res) => {
-    try {
-      const parsedUrl = parse(req.url, true);
-      await handle(req, res, parsedUrl);
-    } catch (err) {
-      console.error('Error handling request:', err);
-      res.statusCode = 500;
-      res.end('Internal Server Error');
-    }
-  }).listen(port, () => {
-    console.log(`> PIETRI running on http://${hostname}:${port}`);
-    console.log(`> Environment: ${process.env.NODE_ENV}`);
-  });
-});
+const standaloneDir = path.join(__dirname, 'standalone');
+console.log('[pietri] Starting standalone from:', standaloneDir);
+
+// Standalone server calls process.chdir(__dirname) internally
+// and loads .env.production via @next/env automatically
+require(path.join(standaloneDir, 'server.js'));

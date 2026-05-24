@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     let emailSent = false;
     if (resendClient) {
       const cleanMail = email.toLowerCase().trim();
-      const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pietri-next.vercel.app';
+      const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pietri.io';
       const welcomeHtml = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Bienvenue chez PIETRI</title></head><body style="margin:0;padding:0;background:#080808;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#080808;padding:40px 16px">
 <tr><td align="center">

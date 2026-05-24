@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://pietri-io.netlify.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://pietri.io';
 
 export default function robots(): MetadataRoute.Robots {
   return {

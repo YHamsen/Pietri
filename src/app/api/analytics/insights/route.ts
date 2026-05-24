@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         meilleur_moment_post: { instagram: 'Données insuffisantes', tiktok: 'Données insuffisantes', facebook: 'Données insuffisantes', x: 'Données insuffisantes' },
         marches_prioritaires: [],
         contenu_qui_performe: [],
-        actions_immediates: ['Partage le lien pietri-io.netlify.app sur tes réseaux pour générer des données analytiques réelles'],
+        actions_immediates: ['Partage le lien pietri.io sur tes réseaux pour générer des données analytiques réelles'],
         alerte: `Seulement ${events?.length || 0} visite(s) enregistrée(s) cette semaine.`,
       },
       dataPoints: events?.length || 0,
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     system: `Tu es analyste data et stratège marketing digital expert en e-commerce streetwear pour les marchés africain (Côte d'Ivoire) et français. Tu analyses des données réelles de trafic web et fournis des recommandations CONCRÈTES, CHIFFRÉES et ACTIONNABLES pour maximiser les ventes et l'engagement.`,
     messages: [{
       role: 'user',
-      content: `ANALYSE ANALYTICS — PIETRI (streetwear afro-français, pietri-io.netlify.app)
+      content: `ANALYSE ANALYTICS — PIETRI (streetwear afro-français, pietri.io)
 Période : 7 derniers jours
 
 DONNÉES RÉELLES :

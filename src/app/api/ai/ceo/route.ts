@@ -19,7 +19,7 @@ function getSb() {
 }
 
 function getBase() {
-  return process.env.NEXT_PUBLIC_BASE_URL || 'https://pietri-next.vercel.app';
+  return process.env.NEXT_PUBLIC_BASE_URL || 'https://pietri.io';
 }
 
 // ── Collecte toutes les données de l'entreprise ───────────────

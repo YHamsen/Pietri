@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PIETRI — Streetwear Africain Premium",
     description: "Drops limités, broderies artisanales, culture africaine. Livraison Abidjan & mondial.",
-    url: "https://pietri-io.netlify.app",
+    url: "https://pietri.io",
     siteName: "PIETRI",
     type: "website",
     images: [{ url: "https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/1.02464a56.png", width: 1200, height: 630, alt: "PIETRI Streetwear" }],
@@ -41,7 +41,7 @@ export default function RootLayout({
           "@type": "ClothingStore",
           "name": "PIETRI",
           "description": "Streetwear africain premium — drops limités, broderies artisanales",
-          "url": "https://pietri-io.netlify.app",
+          "url": "https://pietri.io",
           "priceRange": "€49 - €89",
           "areaServed": ["CI", "FR", "BE", "CA"],
           "currenciesAccepted": "EUR, XOF",

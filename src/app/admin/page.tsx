@@ -2279,7 +2279,7 @@ function Negotiations() {
 /* ── PARAMÈTRES ────────────────────────────────────────────── */
 function Parametres() {
   const items = [
-    {ico:<IcoGlobe/>,  label:'Site web',        value:'pietri-io.netlify.app',       ok:true},
+    {ico:<IcoGlobe/>,  label:'Site web',        value:'pietri.io',       ok:true},
     {ico:<IcoCpu/>,    label:'IA Textes',        value:'Claude Sonnet 4.6 · Anthropic',ok:true},
     {ico:<IcoPalette/>,label:'IA Images',        value:'DALL-E 3 · OpenAI',           ok:true},
     {ico:<IcoDb/>,     label:'Base de données',  value:'Supabase · pietri-io',        ok:true},

@@ -71,7 +71,7 @@ type Section = 'dashboard' | 'commandes' | 'suivi' | 'profil' | 'adresses' | 'pr
 // ─── Referral Section ────────────────────────────────────────────────────────
 function ReferralSection() {
   const [code] = useState(() => 'PIETRI-' + (typeof window !== 'undefined' ? (sessionStorage.getItem('_pietri_sid') || crypto.randomUUID()).slice(0,6).toUpperCase() : 'XXXXXX'));
-  const link = `https://pietri-next.vercel.app/?ref=${code}`;
+  const link = `https://pietri.io/?ref=${code}`;
   const CardInner = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
     <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '1.5rem', ...style }}>{children}</div>
   );

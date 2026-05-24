@@ -32,7 +32,7 @@ Génère le SEO pour ce produit en JSON strict (pas de markdown) :
 Produit : ${product.label}
 Description : ${product.desc}
 Prix : €${product.price}
-URL : https://pietri-io.netlify.app/produits/${slug}
+URL : https://pietri.io/produits/${slug}
 
 Retourne exactement ce JSON :
 {

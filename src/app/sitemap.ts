@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { supabase } from '@/lib/supabase';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://pietri-io.netlify.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://pietri.io';
 
 const STATIC_ROUTES = [
   { url: '/', changeFrequency: 'weekly' as const, priority: 1.0 },
