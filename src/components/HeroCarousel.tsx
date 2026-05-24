@@ -101,9 +101,23 @@ export default function HeroCarousel() {
 
   // Auth state
   useEffect(() => {
-    sb.auth.getSession().then(({ data }) => setIsLoggedIn(!!data.session));
-    const { data: { subscription } } = sb.auth.onAuthStateChange((_e, session) => {
+    // If OAuth redirected user here with access_token in hash → forward to account page
+    const hasAuthHash = typeof window !== 'undefined' && window.location.hash.includes('access_token');
+    const hasAuthCode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('code');
+
+    sb.auth.getSession().then(({ data }) => {
+      setIsLoggedIn(!!data.session);
+      // Implicit-flow fallback: hash contains token but callback page was bypassed
+      if (data.session && hasAuthHash) {
+        window.location.replace('/');
+      }
+    });
+    const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
       setIsLoggedIn(!!session);
+      // Fresh login event on homepage → redirect to account dashboard
+      if (event === 'SIGNED_IN' && session) {
+        window.location.replace('/');
+      }
     });
     return () => subscription.unsubscribe();
   }, []);

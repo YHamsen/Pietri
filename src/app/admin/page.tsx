@@ -600,9 +600,27 @@ function Agent() {
   const [story,setStory]=useState<any>(null);
   const [videoProduct,setVideoProduct]=useState('');
   const [videoResult,setVideoResult]=useState<any>(null);
-  const [activeSubAgent,setActiveSubAgent]=useState<'influencer'|'service_client'|'collection_story'|'video'|null>(null);
+  const [activeSubAgent,setActiveSubAgent]=useState<'influencer'|'service_client'|'collection_story'|'video'|'notify'|null>(null);
+  // Notifications push
+  const [notifyProduct,setNotifyProduct]=useState('');
+  const [notifyTitle,setNotifyTitle]=useState('');
+  const [notifyMsg,setNotifyMsg]=useState('');
+  const [notifyResult,setNotifyResult]=useState<string|null>(null);
 
   function resetCampaign(){setSteps({context:'idle',image:'idle',posts:'idle'});setCtx(null);setImageUrl(null);setPosts(null);setError(null);}
+
+  async function launchNotify(){
+    if(running) return;
+    setRunning(true);setNotifyResult(null);setActiveSubAgent('notify');
+    const body: any={mode:'notify',target:'all'};
+    if(notifyProduct){body.auto_slug=notifyProduct;}
+    else{body.title=notifyTitle;body.message=notifyMsg;}
+    await streamAgent(body,(d)=>{
+      if(d.type==='step_done'&&d.step==='notify') setNotifyResult(`Envoyé — ${d.title}`);
+      else if(d.type==='done'||d.type==='error'){setRunning(false);if(d.error)setError(d.error);}
+    });
+    setRunning(false);
+  }
 
   async function launchInfluencerHunt(){
     if(running) return;
@@ -720,6 +738,7 @@ function Agent() {
           {[
             {icon:'🎨',label:'AI Try-On',desc:'Essayer une pièce sur sa photo',color:'#a78bfa',status:'live',action:null},
             {icon:'👗',label:'Garde-Robe',desc:'Suggestions de style personnalisées',color:'#60a5fa',status:'live',action:null},
+            {icon:'🔔',label:'Push Notifs',desc:'Envoie des notifs push à l\'app mobile',color:'#fbbf24',status:'live',action:()=>document.getElementById('agent-notify')?.scrollIntoView({behavior:'smooth'})},
             {icon:'🔍',label:'Influencer Hunter',desc:'Micro-influenceurs CI/diaspora',color:'#34d399',status:'live',action:()=>document.getElementById('agent-influencer')?.scrollIntoView({behavior:'smooth'})},
             {icon:'💬',label:'Service Client',desc:'Répond aux questions clients 24/7',color:'#facc15',status:'live',action:()=>document.getElementById('agent-sc')?.scrollIntoView({behavior:'smooth'})},
             {icon:'📖',label:'Collection Story',desc:'Fiche culturelle par pièce',color:'#fb923c',status:'live',action:()=>document.getElementById('agent-story')?.scrollIntoView({behavior:'smooth'})},
@@ -843,6 +862,38 @@ function Agent() {
       )}
 
       {error&&steps.context==='idle'&&<Card style={{borderColor:'rgba(248,113,113,.2)',background:'rgba(248,113,113,.05)',marginBottom:'1rem'}}><p style={{fontSize:'.75rem',color:'#f87171'}}>{error}</p></Card>}
+
+      {/* ── NOTIFICATIONS PUSH ── */}
+      <div id="agent-notify">
+        <Card style={{marginBottom:'1.5rem',borderColor:'rgba(251,191,36,0.2)',background:'rgba(251,191,36,0.04)'}}>
+          <p style={{fontSize:'.58rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.18em',color:'#fbbf24',marginBottom:'.5rem'}}>🔔 Notifications Push</p>
+          <p style={{fontSize:'.72rem',opacity:.5,lineHeight:1.6,marginBottom:'1rem'}}>Envoie une notification à tous tes abonnés app. Choisis un produit pour que Claude génère le message automatiquement.</p>
+          <div style={{display:'flex',flexDirection:'column',gap:'.75rem'}}>
+            <div style={{display:'flex',flexWrap:'wrap',gap:'.4rem'}}>
+              <button onClick={()=>setNotifyProduct('')} style={{fontSize:'.62rem',fontWeight:700,padding:'.3rem .8rem',borderRadius:999,border:`1px solid ${notifyProduct===''?'rgba(251,191,36,.5)':'rgba(255,255,255,.08)'}`,background:notifyProduct===''?'rgba(251,191,36,.12)':'transparent',color:notifyProduct===''?'#fbbf24':'rgba(255,255,255,.35)',cursor:'pointer'}}>✍️ Manuel</button>
+              {PRODUCTS.map(p=>(
+                <button key={p.slug} onClick={()=>{setNotifyProduct(p.slug);setNotifyTitle('');setNotifyMsg('');}}
+                  style={{fontSize:'.62rem',fontWeight:700,padding:'.3rem .8rem',borderRadius:999,border:`1px solid ${notifyProduct===p.slug?'rgba(251,191,36,.5)':'rgba(255,255,255,.08)'}`,background:notifyProduct===p.slug?'rgba(251,191,36,.12)':'transparent',color:notifyProduct===p.slug?'#fbbf24':'rgba(255,255,255,.35)',cursor:'pointer',textTransform:'uppercase'}}>
+                  {p.name}
+                </button>
+              ))}
+            </div>
+            {notifyProduct===''&&(
+              <div style={{display:'flex',flexDirection:'column',gap:'.5rem'}}>
+                <input value={notifyTitle} onChange={e=>setNotifyTitle(e.target.value)} placeholder="Titre (ex: 🔥 Nouveau drop PIETRI)" style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.1)',borderRadius:10,padding:'.6rem .9rem',color:'white',fontSize:'.75rem',outline:'none'}}/>
+                <textarea value={notifyMsg} onChange={e=>setNotifyMsg(e.target.value)} placeholder="Message (ex: Le Floral Hoodie est de retour. 100 pièces seulement.)" rows={2} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.1)',borderRadius:10,padding:'.6rem .9rem',color:'white',fontSize:'.75rem',outline:'none',resize:'none'}}/>
+              </div>
+            )}
+            {notifyProduct&&<p style={{fontSize:'.65rem',color:'#fbbf24',opacity:.7}}>✨ Claude va générer automatiquement le titre et le message pour {PRODUCTS.find(p=>p.slug===notifyProduct)?.name}</p>}
+            <div style={{display:'flex',gap:'.5rem',alignItems:'center',flexWrap:'wrap'}}>
+              <Btn onClick={launchNotify} loading={running&&activeSubAgent==='notify'} variant="primary">
+                {notifyProduct?'✨ Générer & Envoyer':'📲 Envoyer à tous'}
+              </Btn>
+              {notifyResult&&<span style={{fontSize:'.65rem',color:'#34d399',fontWeight:700}}>✓ {notifyResult}</span>}
+            </div>
+          </div>
+        </Card>
+      </div>
 
       {/* ── INFLUENCER HUNTER ── */}
       <div id="agent-influencer">

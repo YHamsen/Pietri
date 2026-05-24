@@ -6,6 +6,7 @@ const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const BASE = process.env.NEXT_PUBLIC_BASE_URL!;
 const SECRET = process.env.ADMIN_SECRET!;
+const NOTIFY_SECRET = process.env.NOTIFY_SECRET!;
 
 export const maxDuration = 300;
 
@@ -27,6 +28,18 @@ async function callInternal(path: string, body: object) {
     body: JSON.stringify(body),
   });
   return r.json();
+}
+
+async function sendPushNotification(title: string, message: string, data?: Record<string, string>, target: string = 'all') {
+  try {
+    await fetch(`${BASE}/api/notify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${NOTIFY_SECRET}` },
+      body: JSON.stringify({ title, message, data, target }),
+    });
+  } catch {
+    // Silently ignore — la notif est bonus, pas bloquante
+  }
 }
 
 async function generateDallEImage(prompt: string, size: '1024x1024' | '1024x1792' | '1792x1024' = '1024x1024') {
@@ -182,10 +195,62 @@ Retourne un JSON strict (pas de markdown) :
           summary.posts = 4;
           send({ type: 'step_done', step: 'posts', data: posts });
 
+          // ── NOTIF PUSH AUTO ────────────────────────────────
+          send({ type: 'step_start', step: 'notify' });
+          const notifTitle = `🆕 ${product.label}`;
+          const notifMsg = ctx.hook_fr || ctx.hook_ci || product.desc;
+          await sendPushNotification(notifTitle, notifMsg, { slug, screen: 'product' });
+          summary.push_notif_sent = true;
+          send({ type: 'step_done', step: 'notify', title: notifTitle, message: notifMsg });
+
           // ── DONE ──────────────────────────────────────────
           summary.slug = slug;
           if (runId) await sb.from('agent_runs').update({ status: 'done', summary, finished_at: new Date().toISOString() }).eq('id', runId);
           send({ type: 'done', summary, runId });
+          return;
+        }
+
+        // ═══════════════════════════════════════════════════
+        // NOTIFY — génère + envoie une notif push intelligente
+        // ═══════════════════════════════════════════════════
+        if (mode === 'notify') {
+          send({ type: 'step_start', step: 'notify' });
+          const { title: manualTitle, message: manualMessage, target = 'all', auto_slug } = body;
+
+          let finalTitle = manualTitle;
+          let finalMessage = manualMessage;
+
+          // Si pas de titre/message manuels mais un produit → Claude génère
+          if (auto_slug && (!manualTitle || !manualMessage)) {
+            const product = PRODUCTS[auto_slug];
+            if (product) {
+              const notifMsg = await claude.messages.create({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 300,
+                system: `Tu es copywriter push notification pour PIETRI (streetwear afro-français premium). Génère des notifs courtes, percutantes, qui donnent envie d'ouvrir l'app. Toujours en français. JSON strict sans markdown.`,
+                messages: [{ role: 'user', content: `Génère une notification push pour ce produit PIETRI :\nProduit : ${product.label}\nDescription : ${product.desc}\nPrix : ${product.price}€\n\nJSON : {"title": "max 50 chars, avec emoji", "message": "max 100 chars, accrocheur"}` }]
+              });
+              const raw = (notifMsg.content[0] as any).text.trim();
+              try {
+                const parsed = JSON.parse(raw.replace(/^```json?\n?/, '').replace(/\n?```$/, ''));
+                finalTitle = parsed.title;
+                finalMessage = parsed.message;
+              } catch {}
+            }
+          }
+
+          if (!finalTitle || !finalMessage) {
+            send({ type: 'error', error: 'title et message requis (ou auto_slug pour génération automatique)' });
+            ctrl.close(); return;
+          }
+
+          const notifData: Record<string, string> = {};
+          if (auto_slug) { notifData.slug = auto_slug; notifData.screen = 'product'; }
+
+          await sendPushNotification(finalTitle, finalMessage, notifData, target);
+          if (runId) await sb.from('agent_runs').update({ status: 'done', summary: { notify: 1, title: finalTitle, target }, finished_at: new Date().toISOString() }).eq('id', runId);
+          send({ type: 'step_done', step: 'notify', title: finalTitle, message: finalMessage, target });
+          send({ type: 'done', summary: { notify: 1 }, runId });
           return;
         }
 
