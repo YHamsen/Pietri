@@ -64,7 +64,7 @@ export default function ConnectAuthPage() {
     } else {
       const { error: err } = await sb.auth.signUp({
         email, password,
-        options: { data: { full_name: nom }, emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { data: { full_name: nom }, emailRedirectTo: `${window.location.origin}/auth/callback/exchange?next=/connect/compte` },
       });
       setLoading(false);
       if (err) { setError(err.message); return; }
@@ -76,10 +76,13 @@ export default function ConnectAuthPage() {
     setLoading(true); setError('');
     const { error: err } = await sb.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/connect/compte` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback/exchange?next=/connect/compte`,
+        queryParams: { access_type: 'offline', prompt: 'consent' },
+      },
     });
     if (err) {
-      setError('Google non configuré. Utilise email + mot de passe.');
+      setError(`Erreur Google : ${err.message}`);
       setLoading(false);
     }
   }
